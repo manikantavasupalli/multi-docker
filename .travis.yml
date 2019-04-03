@@ -1,0 +1,24 @@
+sudo: required
+services:
+    - docker
+
+before install:
+    - docker build -t mvasupalli/complex-test -f ./client/Dockerfile.dev
+
+script:
+    - docker run mvasupalli/complex-test npm run test -- --coverage
+
+after_success:
+    - docker build -t mvasupalli/multi-client ./client
+    - docker build -t mvasupalli/multi-server ./server
+    - docker build -t mvasupalli/multi-nginx ./nginx
+    - docker build -t mvasupalli/multi-worker ./worker
+    # Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # push the production images into docker hub
+    - docker push mvasupalli/multi-client
+    - docker push mvasupalli/multi-server
+    - docker push mvasupalli/multi-nginx
+    - docker push mvasupalli/multi-worker
+
+
